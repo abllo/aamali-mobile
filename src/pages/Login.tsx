@@ -6,24 +6,17 @@ import { Button } from '../components/ui';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [mode, setMode] = useState<'in' | 'up'>('in');
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const { data, error } = mode === 'in'
-      ? await supabase!.auth.signInWithPassword({ email, password })
-      : await supabase!.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } });
+    const { error } = await supabase!.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
       const m = error.message;
       toast.error(m.includes('Invalid') ? 'البريد أو كلمة المرور غير صحيحة'
-        : m.includes('not confirmed') ? 'الحساب غير مفعّل، افتح رابط التفعيل المرسل إلى بريدك'
-        : m.includes('already registered') ? 'البريد مسجّل مسبقاً' : m);
-    } else if (mode === 'up') {
-      if (data.session) toast.success('تم إنشاء الحساب');
-      else { toast.success('أُرسل رابط التفعيل إلى بريدك'); setMode('in'); }
+        : m.includes('not confirmed') ? 'الحساب غير مفعّل' : m);
     }
   }
 
@@ -33,12 +26,9 @@ export default function Login() {
       <form onSubmit={submit} className="w-full max-w-sm space-y-3">
         <input type="email" required autoComplete="email" placeholder="البريد" value={email} onChange={(e) => setEmail(e.target.value)} dir="ltr"
           className="h-13 w-full rounded-2xl bg-white/10 px-4 py-3.5 text-[16px] text-white placeholder:text-white/50 outline-none ring-1 ring-white/15 focus:ring-[#D9B662]" />
-        <input type="password" required minLength={6} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder="كلمة المرور" value={password} onChange={(e) => setPassword(e.target.value)} dir="ltr"
+        <input type="password" required autoComplete="current-password" placeholder="كلمة المرور" value={password} onChange={(e) => setPassword(e.target.value)} dir="ltr"
           className="h-13 w-full rounded-2xl bg-white/10 px-4 py-3.5 text-[16px] text-white placeholder:text-white/50 outline-none ring-1 ring-white/15 focus:ring-[#D9B662]" />
-        <Button variant="white" className="w-full" loading={busy}>{mode === 'in' ? 'دخول' : 'إنشاء حساب'}</Button>
-        <button type="button" className="w-full py-2 text-[14px] text-white/70" onClick={() => setMode(mode === 'in' ? 'up' : 'in')}>
-          {mode === 'in' ? 'أول مرة؟ أنشئ حسابك' : 'عندي حساب'}
-        </button>
+        <Button variant="white" className="w-full" loading={busy}>دخول</Button>
       </form>
     </div>
   );
