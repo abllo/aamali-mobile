@@ -9,7 +9,8 @@
     "build:preview": "vite build --mode preview",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "sync:function": "node scripts/sync-function.mjs"
+    "sync:function": "node scripts/sync-function.mjs",
+    "bundle:function": "node scripts/sync-function.mjs && npx -y esbuild@0.24.2 supabase/functions/push/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=supabase/functions/push/bundle.ts"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
