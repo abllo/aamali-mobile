@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { Bell, BellRinging, Clock, Copy, Crown, DownloadSimple, Fingerprint, Gauge, MapPin, Moon, Plus, SignOut, Warning } from '@phosphor-icons/react';
+import { Bell, BellRinging, Clock, Copy, Crown, DownloadSimple, Fingerprint, Gauge, LockKey, MapPin, Moon, Plus, SignOut, Warning } from '@phosphor-icons/react';
 import { useApp, useSaveSettings } from '../hooks/useApp';
 import { Button, Group, Page, Row, Segmented, Sheet, Toggle } from '../components/ui';
 import { DEMO, SUPABASE_KEY, SUPABASE_URL, loadRecords, rotateToken, supabase } from '../lib/data';
@@ -8,7 +8,7 @@ import { CAT_LABEL, type NoticeCat } from '../lib/notify';
 import { usePush } from '../lib/push';
 import { clockText, dur, fromMin, hm, toMin, type CustomAlert, type Schedule, type Settings } from '../lib/rules';
 
-type Panel = null | 'normal' | 'ramadan' | 'allowance' | 'warn' | 'pool' | 'shortcut' | 'geo' | { alert: CustomAlert };
+type Panel = null | 'password' | 'normal' | 'ramadan' | 'allowance' | 'warn' | 'pool' | 'shortcut' | 'geo' | { alert: CustomAlert };
 
 export default function More() {
   const { settings, token, now } = useApp();
@@ -59,8 +59,14 @@ export default function More() {
 
       <Group header="البيانات">
         <Row icon={DownloadSimple} tint="bg-faint" label="تصدير السجل" onClick={() => exportCsv(now.date)} />
-        {!DEMO && <Row icon={SignOut} tint="bg-danger" label="تسجيل الخروج" danger onClick={() => supabase!.auth.signOut()} />}
       </Group>
+
+      {!DEMO && (
+        <Group header="الحساب">
+          <Row icon={LockKey} tint="bg-faint" label="تغيير كلمة المرور" onClick={() => setPanel('password')} chevron />
+          <Row icon={SignOut} tint="bg-danger" label="تسجيل الخروج" danger onClick={() => supabase!.auth.signOut()} />
+        </Group>
+      )}
 
       <p className="pt-2 text-center text-[12px] text-faint">أعمالي</p>
 
@@ -71,6 +77,7 @@ export default function More() {
       {panel === 'allowance' && <DurationSheet title="السماح الشهري" value={settings.allowance} onClose={() => setPanel(null)} onSave={(v) => set({ allowance: v ?? 419 })} />}
       {panel === 'warn' && <DurationSheet title="حد التنبيه" value={settings.warnAt} onClose={() => setPanel(null)} onSave={(v) => set({ warnAt: v ?? 300 })} />}
       {panel === 'pool' && <DurationSheet title="رصيد ساعات المدير" optional value={settings.managerPool ?? null} onClose={() => setPanel(null)} onSave={(v) => set({ managerPool: v })} />}
+      {panel === 'password' && <PasswordSheet onClose={() => setPanel(null)} />}
       {panel === 'shortcut' && <ShortcutSheet token={token ?? ''} onClose={() => setPanel(null)} />}
       {panel === 'geo' && <GeoSheet token={token ?? ''} onClose={() => setPanel(null)} />}
       {panel && typeof panel === 'object' && (
@@ -116,6 +123,33 @@ function ScheduleSheet({ title, value, onSave, onClose }: { title: string; value
           <TimeRow label="آخر وقت انصراف" value={s.latestExit} onChange={(m) => setS({ ...s, latestExit: m })} />
         </Group>
         <Button className="w-full" onClick={() => { onSave(s); setOpen(false); }}>حفظ</Button>
+      </div>
+    </Sheet>
+  );
+}
+
+function PasswordSheet({ onClose }: { onClose: () => void }) {
+  const [open, setOpen] = useClosing(onClose);
+  const [a, setA] = useState('');
+  const [b, setB] = useState('');
+  const [busy, setBusy] = useState(false);
+  const field = 'h-12 w-full rounded-2xl bg-surface-2 px-4 text-[16px] outline-none';
+  async function submit() {
+    if (a.length < 8) return toast.error('كلمة المرور 8 أحرف على الأقل');
+    if (a !== b) return toast.error('كلمتا المرور غير متطابقتين');
+    setBusy(true);
+    const { error } = await supabase!.auth.updateUser({ password: a });
+    setBusy(false);
+    if (error) return toast.error(error.message.includes('different') ? 'كلمة المرور الجديدة مطابقة للحالية' : error.message);
+    toast.success('تم تغيير كلمة المرور');
+    setOpen(false);
+  }
+  return (
+    <Sheet open={open} onOpenChange={setOpen} title="تغيير كلمة المرور">
+      <div className="space-y-3">
+        <input type="password" autoComplete="new-password" placeholder="كلمة المرور الجديدة" dir="ltr" value={a} onChange={(e) => setA(e.target.value)} className={field} />
+        <input type="password" autoComplete="new-password" placeholder="تأكيد كلمة المرور" dir="ltr" value={b} onChange={(e) => setB(e.target.value)} className={field} />
+        <Button className="w-full" loading={busy} onClick={submit}>حفظ</Button>
       </div>
     </Sheet>
   );
