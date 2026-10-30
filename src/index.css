@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans Arabic", -apple-system, "SF Pro Text", "Segoe UI", Tahoma, system-ui, sans-serif;
+
+  --color-bg: #F1F4F6;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #EEF3F1;
+  --color-ink: #1B2422;
+  --color-muted: #6B7472;
+  --color-faint: #A3ABA8;
+  --color-line: #E4E8E6;
+  --color-brand: #0D4A40;
+  --color-brand-ink: #FFFFFF;
+  --color-brand-soft: #E6F6F3;
+  --color-gold: #B8942F;
+  --color-gold-l: #D9B662;
+  --color-gold-soft: #F7EED8;
+  --color-good: #1F9D57;
+  --color-good-soft: #DDF3E5;
+  --color-warn: #B7791F;
+  --color-warn-soft: #FBEFD5;
+  --color-danger: #C0392B;
+  --color-danger-soft: #F8DEDA;
+  --color-sky: #2F86D6;
+  --color-sky-soft: #DDEBFA;
+  --color-violet: #6E5BD8;
+  --color-violet-soft: #E8E4FB;
+
+  --radius-card: 1.375rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #050C0B;
+    --color-surface: #101917;
+    --color-surface-2: #172321;
+    --color-ink: #EEF7F6;
+    --color-muted: #94A3A0;
+    --color-faint: #5F6E6B;
+    --color-line: #21302D;
+    --color-brand: #4CB8A6;
+    --color-brand-ink: #05241F;
+    --color-brand-soft: #0D2A25;
+    --color-gold: #D9B662;
+    --color-gold-l: #E8CD8A;
+    --color-gold-soft: #2E2611;
+    --color-good: #45C97F;
+    --color-good-soft: #133825;
+    --color-warn: #E3A73F;
+    --color-warn-soft: #3A2C10;
+    --color-danger: #F07B6E;
+    --color-danger-soft: #3D1A16;
+    --color-sky: #5AA6EC;
+    --color-sky-soft: #132C44;
+    --color-violet: #9C8CF0;
+    --color-violet-soft: #251F44;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+    --color-bg: #050C0B;
+    --color-surface: #101917;
+    --color-surface-2: #172321;
+    --color-ink: #EEF7F6;
+    --color-muted: #94A3A0;
+    --color-faint: #5F6E6B;
+    --color-line: #21302D;
+    --color-brand: #4CB8A6;
+    --color-brand-ink: #05241F;
+    --color-brand-soft: #0D2A25;
+    --color-gold: #D9B662;
+    --color-gold-l: #E8CD8A;
+    --color-gold-soft: #2E2611;
+    --color-good: #45C97F;
+    --color-good-soft: #133825;
+    --color-warn: #E3A73F;
+    --color-warn-soft: #3A2C10;
+    --color-danger: #F07B6E;
+    --color-danger-soft: #3D1A16;
+    --color-sky: #5AA6EC;
+    --color-sky-soft: #132C44;
+    --color-violet: #9C8CF0;
+    --color-violet-soft: #251F44;
+    color-scheme: dark;
+  }
+
+
+html, body, #root { min-height: 100%; }
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* بطاقة اليوم الرئيسية */
+.hero {
+  background:
+    radial-gradient(70% 60% at 15% 10%, rgba(212, 169, 74, .20) 0%, transparent 62%),
+    radial-gradient(90% 80% at 100% 100%, rgba(33, 155, 136, .28) 0%, transparent 60%),
+    linear-gradient(200deg, #0D4A40 0%, #072E27 55%, #05241F 100%);
+  color: #fff;
+}
+.hero-soft { background: rgba(255, 255, 255, .09); border: 1px solid rgba(255, 255, 255, .08); }
+.gold-text { color: #E3C67B; }
+
+.num { font-variant-numeric: tabular-nums; }
+.ltr { direction: ltr; unicode-bidi: isolate; }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+button, nav, a { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.6rem); }
+.pt-safe { padding-top: max(env(safe-area-inset-top), 0.75rem); }
+
+/* حركة الحلقة */
+.ring-track { stroke: rgba(255, 255, 255, .16); }
+.ring-bar { transition: stroke-dashoffset .9s cubic-bezier(.2, .8, .2, 1); }
+
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.live-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
