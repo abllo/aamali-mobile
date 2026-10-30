@@ -66,7 +66,8 @@ create table if not exists public.push_config (
   vapid_private jsonb,
   hook_secret   text not null default replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', ''),
   function_url  text,
-  subject       text not null default 'mailto:aamali@example.com'
+  subject       text not null default 'mailto:aamali@example.com',
+  anon_key      text  -- المفتاح العام: الجدولة تنادي الدالة به (التحقق من JWT يبقى شغال)
 );
 insert into public.push_config (id) values (1) on conflict do nothing;
 
@@ -113,7 +114,8 @@ begin
   perform net.http_post(
     url := c.function_url,
     body := jsonb_build_object('secret', c.hook_secret, 'kind', 'tick', 'user', p_user),
-    headers := jsonb_build_object('Content-Type', 'application/json'),
+    headers := jsonb_build_object('Content-Type', 'application/json',
+                                  'Authorization', 'Bearer ' || coalesce(c.anon_key, ''), 'apikey', coalesce(c.anon_key, '')),
     timeout_milliseconds := 10000);
 end $$;
 
