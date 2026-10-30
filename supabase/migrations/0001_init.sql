@@ -86,7 +86,9 @@ drop policy if exists own_evidence on public.evidence;
 create policy own_evidence on public.evidence for select using (user_id = auth.uid());
 -- push_subscriptions / push_sent / push_config: بدون سياسات = ما أحد يوصلها إلا الدوال
 
-revoke all on public.push_config from anon, authenticated;
+revoke all on public.push_config, public.push_subscriptions, public.push_sent from anon, authenticated;
+grant select, insert, update, delete on public.days to authenticated;
+grant select on public.profiles, public.evidence to authenticated;
 
 -- ---------- أدوات ----------
 create or replace function public.riyadh_now() returns timestamp language sql stable as $$
@@ -212,6 +214,7 @@ declare
   t text := translate(left(coalesce($2, ''), 20000), '٠١٢٣٤٥٦٧٨٩', '0123456789');
   seg text; i int; j int;
   v_times text[];
+  tm text;
   m text[];
   v_last_date date; v_last_time text;
   d days;
@@ -232,11 +235,18 @@ begin
     seg := regexp_replace(seg, '\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}', '', 'g'); -- وقت الوردية
     select array_agg(x[1] || ':' || x[2]) into v_times
       from regexp_matches(seg, '(?<![\d:])([01]\d|2[0-3]):([0-5]\d)(?![\d:])', 'g') as x;
+    -- الأوقات بالترتيب: الأصغر حضور والأكبر انصراف (مهما كان ترتيب القراءة)
     if v_times is not null then
-      if array_length(v_times, 1) >= 1 then v_changed := apply_punch(v_user, v_today, 'enter', v_times[1], 'hadir') or v_changed; end if;
-      if array_length(v_times, 1) >= 2 and hm_to_min(v_times[2]) > hm_to_min(v_times[1]) then
-        v_changed := apply_punch(v_user, v_today, 'exit', v_times[2], 'hadir') or v_changed;
-      end if;
+      select array_agg(x order by x) into v_times from unnest(v_times) x;
+      foreach tm in array v_times loop
+        select * into d from days where user_id = v_user and date = v_today;
+        if d is null or d.enter is null or left(d.enter, 5) = tm
+           or (src_rank(d.enter_source) < src_rank('hadir') and abs(hm_to_min(tm) - hm_to_min(d.enter)) < 30) then
+          v_changed := apply_punch(v_user, v_today, 'enter', tm, 'hadir') or v_changed;
+        elsif hm_to_min(tm) >= hm_to_min(d.enter) + 30 then
+          v_changed := apply_punch(v_user, v_today, 'exit', tm, 'hadir') or v_changed;
+        end if;
+      end loop;
     end if;
   end if;
 
@@ -247,7 +257,8 @@ begin
     v_last_time := m[2] || ':' || m[3] || coalesce(':' || m[4], '');
     if v_last_date between v_today - 14 and v_today then
       select * into d from days where user_id = v_user and date = v_last_date;
-      if v_last_date = v_today and (d is null or d.enter is null) then
+      if v_last_date = v_today and (d is null or d.enter is null
+           or (src_rank(d.enter_source) < src_rank('last') and abs(hm_to_min(v_last_time) - hm_to_min(d.enter)) < 30)) then
         v_changed := apply_punch(v_user, v_today, 'enter', v_last_time, 'last') or v_changed;
       elsif d.enter is not null and left(d.enter, 5) = left(v_last_time, 5) then
         perform apply_punch(v_user, v_last_date, 'enter', v_last_time, 'last'); -- يضيف ثواني الحضور
@@ -268,17 +279,15 @@ begin
     end if;
   end if;
 
-  -- ٤) «انت اليوم في راحة/إجازة»
-  if t ~ 'انت اليوم في' then
-    v_rest := case when t ~ '(إ|ا)جازة' then 'leave' when t ~ 'راحة' then 'holiday' end;
-    if v_rest is not null then
-      update days set kind = v_rest, updated_at = now()
-        where user_id = v_user and date = v_today and enter is null and kind is null;
-      if not found and not exists (select 1 from days where user_id = v_user and date = v_today) then
-        insert into days (user_id, date, kind) values (v_user, v_today, v_rest);
-        v_changed := true;
-      end if;
-    end if;
+  -- ٤) «انت اليوم في راحة/إجازة» (السطر اللي بعد العبارة مباشرة)
+  v_rest := case
+    when t ~ 'انت اليوم في\s*(إ|ا)جازة' then 'leave'
+    when t ~ 'انت اليوم في\s*راحة' then 'holiday' end;
+  if v_rest is not null then
+    insert into days (user_id, date, kind) values (v_user, v_today, v_rest)
+      on conflict (user_id, date) do update set kind = excluded.kind, updated_at = now()
+      where days.enter is null and days.kind is null;
+    v_changed := v_changed or found;
   end if;
 
   if v_changed then
