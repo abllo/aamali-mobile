@@ -12,12 +12,19 @@ export default function Login() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const { error } = mode === 'in'
+    const { data, error } = mode === 'in'
       ? await supabase!.auth.signInWithPassword({ email, password })
-      : await supabase!.auth.signUp({ email, password });
+      : await supabase!.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } });
     setBusy(false);
-    if (error) toast.error(error.message.includes('Invalid') ? 'البريد أو كلمة المرور غلط' : error.message);
-    else if (mode === 'up') toast.success('تم إنشاء حسابك');
+    if (error) {
+      const m = error.message;
+      toast.error(m.includes('Invalid') ? 'البريد أو كلمة المرور غير صحيحة'
+        : m.includes('not confirmed') ? 'الحساب غير مفعّل، افتح رابط التفعيل المرسل إلى بريدك'
+        : m.includes('already registered') ? 'البريد مسجّل مسبقاً' : m);
+    } else if (mode === 'up') {
+      if (data.session) toast.success('تم إنشاء الحساب');
+      else { toast.success('أُرسل رابط التفعيل إلى بريدك'); setMode('in'); }
+    }
   }
 
   return (
