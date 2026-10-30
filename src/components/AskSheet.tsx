@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { toast } from 'sonner';
-import { AirplaneTilt, Briefcase, Fingerprint, GraduationCap, HandPalm, SunHorizon } from '@phosphor-icons/react';
+import { AirplaneTilt, Briefcase, Fingerprint, GraduationCap, HandPalm, House, SunHorizon } from '@phosphor-icons/react';
 import { useNow, useSaveDay } from '../hooks/useApp';
 import { dayName } from '../lib/notify';
 import { KIND_LABEL, type DayKind } from '../lib/rules';
@@ -10,6 +10,7 @@ import { Button, Group, Row, Sheet } from './ui';
 const OPTIONS: { kind: DayKind; icon: typeof HandPalm; tint: string }[] = [
   { kind: 'excuse', icon: HandPalm, tint: 'bg-sky' },
   { kind: 'leave', icon: AirplaneTilt, tint: 'bg-[#3B6FD8]' },
+  { kind: 'remote', icon: House, tint: 'bg-brand' },
   { kind: 'external', icon: Briefcase, tint: 'bg-violet' },
   { kind: 'training', icon: GraduationCap, tint: 'bg-violet' },
   { kind: 'holiday', icon: SunHorizon, tint: 'bg-faint' },

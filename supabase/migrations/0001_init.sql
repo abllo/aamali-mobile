@@ -23,7 +23,7 @@ create table if not exists public.days (
   exit           text check (exit ~ '^\d{2}:\d{2}(:\d{2})?$'),
   enter_source   text,
   exit_source    text,
-  kind           text check (kind in ('excuse', 'leave', 'external', 'training', 'holiday')),
+  kind           text check (kind in ('excuse', 'leave', 'remote', 'external', 'training', 'holiday')),
   excuse_minutes int check (excuse_minutes >= 0),
   excuse_state   text check (excuse_state in ('submitted', 'approved')),
   note           text,

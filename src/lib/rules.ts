@@ -4,7 +4,7 @@
 export type Min = number;
 
 /** أنواع الأيام اللي ما تنحسب عليك (يوم كامل) */
-export type DayKind = 'work' | 'excuse' | 'leave' | 'external' | 'training' | 'holiday';
+export type DayKind = 'work' | 'excuse' | 'leave' | 'remote' | 'external' | 'training' | 'holiday';
 
 export interface DayRecord {
   date: string;                 // YYYY-MM-DD
@@ -66,6 +66,7 @@ export const KIND_LABEL: Record<DayKind, string> = {
   work: 'دوام',
   excuse: 'استئذان',
   leave: 'إجازة',
+  remote: 'عمل عن بعد',
   external: 'تكليف خارجي',
   training: 'دورة تدريبية',
   holiday: 'عطلة',

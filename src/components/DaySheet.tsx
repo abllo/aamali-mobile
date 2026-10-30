@@ -5,7 +5,7 @@ import { dayName } from '../lib/notify';
 import { calcDay, clockText, dur, KIND_LABEL, type DayKind, type DayRecord } from '../lib/rules';
 import { Button, Group, Row, Segmented, Sheet, Toggle, cx } from './ui';
 
-const KINDS: DayKind[] = ['work', 'excuse', 'leave', 'external', 'training', 'holiday'];
+const KINDS: DayKind[] = ['work', 'excuse', 'leave', 'remote', 'external', 'training', 'holiday'];
 const SOURCE: Record<string, string> = { hadir: 'حاضر+', last: 'حاضر+ (آخر بصمة)', success: 'مبدئي', manual: 'يدوي', open: 'تقريبي' };
 
 /** تعديل يوم: الأوقات، نوع اليوم، الاستئذان الجزئي */

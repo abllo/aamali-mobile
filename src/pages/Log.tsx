@@ -14,7 +14,7 @@ const DOT: Record<Dot, { c: string; label: string } | null> = {
   absent: { c: 'bg-danger', label: 'غياب' },
   leave: { c: 'bg-[#3B6FD8]', label: 'إجازة' },
   excuse: { c: 'bg-sky', label: 'استئذان' },
-  external: { c: 'bg-violet', label: 'تكليف/دورة' },
+  external: { c: 'bg-violet', label: 'تكليف · عن بعد · دورة' },
   none: null,
 };
 const WD = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
